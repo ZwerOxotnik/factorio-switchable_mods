@@ -1,6 +1,6 @@
 
 --[[
-	This is modification of event_handler.lua from Factorio 1.1.39
+  This is modified version of https://github.com/wube/factorio-data/blob/master/core/lualib/event_handler.lua
 	This version allows you to have switchable events for mods.
 	Modified by ZwerOxotnik
 ]]
@@ -9,6 +9,8 @@ local events_when_on = {}
 local events_when_off = {}
 local on_nth_tick_when_on = {}
 local on_nth_tick_when_off = {}
+
+---@type table<string, table>
 local libraries = {}
 
 local SETTING_MOD_NAME = "mod_" .. script.mod_name
@@ -24,22 +26,43 @@ local function register_events_when_off()
 		script.on_nth_tick(k, nil)
 	end
 
-	for event, handlers in pairs (events_when_off) do
-		local action = function(event)
-			for _, handler in pairs (handlers) do
-				handler(event)
-			end
+	for event, handlers in pairs(events_when_off) do
+		local count = 0
+		for _ in pairs(handlers) do
+			count = count + 1
 		end
-		script.on_event(event, action)
+		if count == 1 then
+			local _, func = next(handlers)
+			script.on_event(event, func)
+		else
+			-- TODO: improve
+			local action = function(_event)
+				for _, handler in pairs(handlers) do
+					handler(_event)
+				end
+			end
+			script.on_event(event, action)
+		end
 	end
 
-	for n, handlers in pairs (on_nth_tick_when_off) do
-		local action = function(event)
-			for _, handler in pairs (handlers) do
-				handler(event)
-			end
+	for n, handlers in pairs(on_nth_tick_when_off) do
+		local count = 0
+		for _ in pairs(handlers) do
+			count = count + 1
 		end
-		script.on_nth_tick(n, action)
+
+		if count == 1 then
+			local _, func = next(handlers)
+			script.on_nth_tick(n, func)
+		else
+			-- TODO: improve
+			local action = function(event)
+				for _, handler in pairs(handlers) do
+					handler(event)
+				end
+			end
+			script.on_nth_tick(n, action)
+		end
 	end
 end
 
@@ -51,22 +74,43 @@ local function register_events_when_on()
 		script.on_nth_tick(k, nil)
 	end
 
-	for event, handlers in pairs (events_when_on) do
-		local action = function(event)
-			for _, handler in pairs (handlers) do
-				handler(event)
-			end
+	for event, handlers in pairs(events_when_on) do
+		local count = 0
+		for _ in pairs(handlers) do
+			count = count + 1
 		end
-		script.on_event(event, action)
+		if count == 1 then
+			local _, func = next(handlers)
+			script.on_event(event, func)
+		else
+			-- TODO: improve
+			local action = function(_event)
+				for _, handler in pairs(handlers) do
+					handler(_event)
+				end
+			end
+			script.on_event(event, action)
+		end
 	end
 
-	for n, handlers in pairs (on_nth_tick_when_on) do
-		local action = function(event)
-			for _, handler in pairs (handlers) do
-				handler(event)
-			end
+	for n, handlers in pairs(on_nth_tick_when_on) do
+		local count = 0
+		for _ in pairs(handlers) do
+			count = count + 1
 		end
-		script.on_nth_tick(n, action)
+
+		if count == 1 then
+			local _, func = next(handlers)
+			script.on_nth_tick(n, func)
+		else
+			-- TODO: improve
+			local action = function(event)
+				for _, handler in pairs(handlers) do
+					handler(event)
+				end
+			end
+			script.on_nth_tick(n, action)
+		end
 	end
 end
 
@@ -75,7 +119,7 @@ local register_remote_interfaces = function()
 	if setup_ran then return end
 	setup_ran = true
 
-	for _, lib in pairs (libraries) do
+	for _, lib in pairs(libraries) do
 		if lib.add_remote_interface then
 			lib.add_remote_interface()
 		end
@@ -157,30 +201,30 @@ local register_events = function()
 	on_nth_tick_when_on = {}
 	on_nth_tick_when_off = {}
 
-	for lib_name, lib in pairs (libraries) do
+	for lib_name, lib in pairs(libraries) do
 		if lib.events then
-			for k, handler in pairs (lib.events) do
+			for k, handler in pairs(lib.events) do
 				events_when_on[k] = events_when_on[k] or {}
 				events_when_on[k][lib_name] = handler
 			end
 		end
 
 		if lib.events_when_off then
-			for k, handler in pairs (lib.events_when_off) do
+			for k, handler in pairs(lib.events_when_off) do
 				events_when_off[k] = events_when_off[k] or {}
 				events_when_off[k][lib_name] = handler
 			end
 		end
 
 		if lib.on_nth_tick then
-			for n, handler in pairs (lib.on_nth_tick) do
+			for n, handler in pairs(lib.on_nth_tick) do
 				on_nth_tick_when_on[n] = on_nth_tick_when_on[n] or {}
 				on_nth_tick_when_on[n][lib_name] = handler
 			end
 		end
 
 		if lib.on_nth_tick_when_off then
-			for n, handler in pairs (lib.on_nth_tick_when_off) do
+			for n, handler in pairs(lib.on_nth_tick_when_off) do
 				on_nth_tick_when_off[n] = on_nth_tick_when_off[n] or {}
 				on_nth_tick_when_off[n][lib_name] = handler
 			end
@@ -199,13 +243,13 @@ script.on_init(function()
 	register_events()
 
 	if state then
-		for _, lib in pairs (libraries) do
+		for _, lib in pairs(libraries) do
 			if lib.on_init then
 				lib.on_init()
 			end
 		end
 	else
-		for _, lib in pairs (libraries) do
+		for _, lib in pairs(libraries) do
 			if lib.on_init_when_off then
 				lib.on_init_when_off()
 			elseif lib.on_init then
@@ -220,13 +264,13 @@ script.on_load(function()
 	register_events()
 
 	if state then
-		for _, lib in pairs (libraries) do
+		for _, lib in pairs(libraries) do
 			if lib.on_load then
 				lib.on_load()
 			end
 		end
 	else
-		for _, lib in pairs (libraries) do
+		for _, lib in pairs(libraries) do
 			if lib.on_load_when_off then
 				lib.on_load_when_off()
 			elseif lib.on_load then
@@ -237,17 +281,18 @@ script.on_load(function()
 end)
 
 script.on_configuration_changed(function(data)
-	for _, lib in pairs (libraries) do
+	for _, lib in pairs(libraries) do
 		if lib.on_configuration_changed then
 			lib.on_configuration_changed(data)
 		end
 	end
 end)
 
+
 local handler = {}
 
 handler.add_lib = function(lib)
-	for _, current in pairs (libraries) do
+	for _, current in pairs(libraries) do
 		if current == lib then
 			error("Trying to register same lib twice")
 		end
@@ -256,7 +301,7 @@ handler.add_lib = function(lib)
 end
 
 handler.add_libraries = function(libs)
-	for k, lib in pairs (libs) do
+	for _, lib in pairs(libs) do
 		handler.add_lib(lib)
 	end
 end
